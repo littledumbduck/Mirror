@@ -30,6 +30,10 @@ import javafx.util.Duration;
  */
 public class SalaController {
 
+    // =========================================================================
+    // PALABRA DEL DÍA: Halloween
+    // =========================================================================
+
     @FXML private StackPane raiz;
     @FXML private StackPane capaAmbiente;
     @FXML private StackPane contenedorEspejo;
