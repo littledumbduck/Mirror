@@ -43,9 +43,12 @@
         </StackPane>
     </StackPane>
 
-    <!-- CAPA 2: JUMPSCARE INMEDIATO (CAMBIO DE PANTALLA REPENTINO A PANTALLA COMPLETA, 5s) -->
+    <!-- CAPA 2: JUMPSCARE INMEDIATO (ADAPTADO PERFECTAMENTE A PANTALLA COMPLETA, 5s) -->
     <StackPane fx:id="capaJumpscare" visible="false" styleClass="capa-jumpscare">
-        <ImageView fx:id="imgJumpscare" pickOnBounds="true" preserveRatio="false" styleClass="imagen-jumpscare" />
+        <!-- Fondo ambiental a pantalla completa total -->
+        <ImageView fx:id="imgJumpscareFondo" opacity="0.45" pickOnBounds="true" preserveRatio="false" styleClass="imagen-jumpscare-fondo" />
+        <!-- Imagen principal del jumpscare centrada a máxima resolución -->
+        <ImageView fx:id="imgJumpscare" pickOnBounds="true" preserveRatio="true" styleClass="imagen-jumpscare" />
     </StackPane>
 
     <!-- CAPA 3: ENTREGA DE LA LETRA SECRETA "D" (TRAS LOS 5 SEGUNDOS DE SCREAM) -->

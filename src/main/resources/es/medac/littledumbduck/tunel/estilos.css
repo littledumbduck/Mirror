@@ -88,8 +88,13 @@
     -fx-alignment: center;
 }
 
+.imagen-jumpscare-fondo {
+    -fx-alignment: center;
+}
+
 .imagen-jumpscare {
     -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, #ff0000, 35, 0.75, 0, 0);
 }
 
 /* Capa de entrega de letra "D" */

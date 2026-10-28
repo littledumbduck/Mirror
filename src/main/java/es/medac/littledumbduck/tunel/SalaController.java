@@ -55,6 +55,7 @@ public class SalaController {
 
     // Capa 2: Jumpscare repentino
     @FXML private StackPane capaJumpscare;
+    @FXML private ImageView imgJumpscareFondo;
     @FXML private ImageView imgJumpscare;
 
     // Capa 3: Revelación de la letra "D"
@@ -146,9 +147,19 @@ public class SalaController {
                 imgEspejo.setImage(new Image(espejoStream));
             }
 
-            InputStream jumpscareStream = getClass().getResourceAsStream("images/reflejo_espectro.png");
+            InputStream jumpscareStream = getClass().getResourceAsStream("images/jumpscare.jpeg");
+            if (jumpscareStream == null) {
+                jumpscareStream = getClass().getResourceAsStream("images/jumpscare.jpg");
+            }
+            if (jumpscareStream == null) {
+                jumpscareStream = getClass().getResourceAsStream("images/reflejo_espectro.png");
+            }
             if (jumpscareStream != null) {
-                imgJumpscare.setImage(new Image(jumpscareStream));
+                Image imgScare = new Image(jumpscareStream);
+                imgJumpscare.setImage(imgScare);
+                if (imgJumpscareFondo != null) {
+                    imgJumpscareFondo.setImage(imgScare);
+                }
             }
         } catch (Exception e) {
             System.err.println("Aviso al cargar imágenes: " + e.getMessage());
@@ -162,8 +173,12 @@ public class SalaController {
         imgEspejo.fitWidthProperty().bind(raiz.widthProperty().multiply(0.95));
         imgEspejo.fitHeightProperty().bind(raiz.heightProperty().multiply(0.92));
 
-        imgJumpscare.fitWidthProperty().bind(raiz.widthProperty());
-        imgJumpscare.fitHeightProperty().bind(raiz.heightProperty());
+        if (imgJumpscareFondo != null) {
+            imgJumpscareFondo.fitWidthProperty().bind(raiz.widthProperty());
+            imgJumpscareFondo.fitHeightProperty().bind(raiz.heightProperty());
+        }
+        imgJumpscare.fitHeightProperty().bind(raiz.heightProperty().multiply(0.98));
+        imgJumpscare.fitWidthProperty().bind(raiz.widthProperty().multiply(0.98));
     }
 
     /**
