@@ -12,8 +12,8 @@
 Esta aplicación JavaFX forma parte del escape room interactivo del Túnel del Terror de MEDAC, compuesto por 6 salas coordinadas entre alumnos de 1.º (Lenguaje de Marcas) y 2.º (Desarrollo de Interfaces).
 
 * **Pantalla de 1.º (HTML):** Un cuadro con un retrato antiguo cuyos ojos siguen al visitante a través de la pantalla mientras recorre la sala.
-* **Pantalla de 2.º (JavaFX - Sala 4 «El Espejo»):** El espejo ocupa casi la totalidad de la pantalla. En su interior se vislumbra el reflejo de un rostro pálido e inquietante cuyos ojos siguen en tiempo real el cursor del ratón del visitante por toda la pantalla.
-* **Desencadenante y susto repentino:** Al interactuar (tocar el cristal o pulsar el botón), se produce un **cambio de pantalla instantáneo y repentino a pantalla completa**, sin transición gradual, mostrando el rostro aterrador desencajado junto con el alarido estremecedor (`susto.mp3`).
+* **Pantalla de 2.º (JavaFX - Sala 4 «El Espejo»):** El espejo ocupa casi la totalidad de la pantalla. En su interior se vislumbra el reflejo de un rostro pálido e inquietante con cuencas profundas donde dos ojos gráficos individuales (`ojo_terror.png`) siguen en tiempo real el cursor del ratón del visitante por toda la pantalla.
+* **Desencadenante y susto repentino:** Al interactuar (tocar el cristal o pulsar el botón), se produce un **cambio de pantalla instantáneo y repentino a pantalla completa**, sin transición gradual, con disparo sonoro inmediato en el milisegundo 0 (`susto.mp3`), mostrando el rostro aterrador desencajado.
 * **Duración y entrega de la letra:** El scream a pantalla completa se sostiene durante **5 segundos** generando el clímax de terror. Tras esos 5 segundos, la pantalla conmuta revelando la letra secreta **`D`** con una animación de latido espectral continuo (`ScaleTransition`). Con esta letra y las del resto de salas (1-5), los grupos podrán abrir la puerta final en la Sala 6.
 
 ---
@@ -96,7 +96,8 @@ En una aplicación de software real:
 
 * **Imágenes:**
   * Marco de espejo gótico barroco a pantalla casi completa (`espejo.png`).
-  * Rostro espectral reflejado con pupilas interactivas (`rostro_espejo.png`).
+  * Rostro espectral reflejado con cuencas oculares vacías (`rostro_espejo.png`).
+  * Globos oculares demoníacos interactivos independientes (`ojo_terror.png`).
   * Rostro jumpscare para el scream súbito a pantalla completa (`reflejo_espectro.png`).
 * **Tipografía:**
   * `terror.ttf` cargada con `Font.loadFont`.
