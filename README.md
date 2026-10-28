@@ -65,6 +65,7 @@ mvn clean javafx:run
 ### Controles de la mesa durante el túnel:
 * **Botón "COMENZAR CONCENTRACIÓN":** Inicia la aparición y movimiento del punto para el grupo actual.
 * **Seguimiento con el ratón:** El visitante debe mantener el cursor sobre el punto mientras este se mueve aleatoriamente.
+* **Tecla `F9`:** Salto directo inmediato al jumpscare (ideal para betatesting rápido sin esperar los 20 segundos).
 * **Tecla `F12`:** Reinicia la sala al estado original en cualquier momento.
 
 ---
