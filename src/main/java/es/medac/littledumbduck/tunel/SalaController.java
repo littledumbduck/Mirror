@@ -24,13 +24,12 @@ import javafx.util.Duration;
 
 /**
  * Controlador para la Sala 4: El Espejo (Túnel del Terror).
- * - Pantalla de concentración: "Mira atentamente al punto y síguelo con el ratón".
- * - Botón para iniciar la prueba.
- * - Punto móvil aleatorio (con variaciones continuas de velocidad y distancia por toda la pantalla).
- * - Comprobación continua: si el ratón se sale del punto, se detiene y muestra "Vuelve a intentarlo".
- * - Tras 30 segundos continuos siguiendo el punto, se dispara el scream súbito con audio instantáneo.
- * - Tras 5 segundos de scream, se revela la letra secreta "D" con animación de latido espectral.
- * - Autorreinicio tras 12 segundos y tecla F12 para reinicio manual inmediato.
+ * - Mecánica de concentración con punto móvil.
+ * - Margen de tolerancia de 1.8 segundos antes de dar fallo.
+ * - Rango de tolerancia de contacto ampliado (~85px) para jugabilidad óptima.
+ * - Inicio justo: el punto aparece centrado y no penaliza hasta que el usuario lo toca.
+ * - A los 30 segundos de seguimiento -> Scream fulminante instantáneo durante 5s.
+ * - Entrega de la letra secreta "D" con animación espectral.
  */
 public class SalaController {
 
@@ -77,6 +76,7 @@ public class SalaController {
 
     private boolean resuelto = false;
     private boolean juegoEnCurso = false;
+    private boolean primerContactoRealizado = false;
 
     // Posición del ratón en la escena
     private double mouseX = -1000;
@@ -88,13 +88,16 @@ public class SalaController {
     private double puntoY = 0;
     private double objetivoX = 0;
     private double objetivoY = 0;
-    private double velocidadActual = 180.0; // px por segundo
+    private double velocidadActual = 150.0;
     private double segundosSeguidos = 0.0;
+    private double tiempoFuera = 0.0; // Contador de tolerancia de fallo
     private long ultimoTiempoNano = 0;
     private final Random azar = new Random();
 
-    // Tolerancia del ratón sobre el punto (radio en px)
-    private static final double RADIO_TOLERANCIA_RATON = 48.0;
+    // Rango de tolerancia de captura del ratón ampliado a 85px (muy cómodo y justo)
+    private static final double RADIO_TOLERANCIA_RATON = 85.0;
+    // Tolerancia de fallo: 1.8 segundos fuera del punto antes de perder
+    private static final double MAX_TIEMPO_FUERA = 1.8;
     // Tiempo requerido siguiendo el punto antes del susto (30 segundos)
     private static final double SEGUNDOS_OBJETIVO = 30.0;
     // Duración del scream solicitada (5 segundos)
@@ -178,8 +181,7 @@ public class SalaController {
     }
 
     /**
-     * Bucle continuo a 60 FPS con AnimationTimer para mover el punto aleatoriamente
-     * y verificar que el usuario mantiene el ratón encima.
+     * Bucle continuo a 60 FPS con AnimationTimer con tolerancia de 1.8s.
      */
     private void configurarBucleMovimientoPunto() {
         buclePunto = new AnimationTimer() {
@@ -197,33 +199,55 @@ public class SalaController {
                 double dt = (now - ultimoTiempoNano) / 1_000_000_000.0;
                 ultimoTiempoNano = now;
 
-                // 1. Comprobar si el ratón está encima del punto
+                // Medir distancia entre ratón y el punto
                 Point2D puntoEscena = nodoPunto.localToScene(nodoPunto.getWidth() / 2.0, nodoPunto.getHeight() / 2.0);
                 double distMouse = Math.hypot(mouseX - puntoEscena.getX(), mouseY - puntoEscena.getY());
 
-                if (distMouse > RADIO_TOLERANCIA_RATON) {
-                    // El usuario se ha salido del punto -> Detener y mostrar "Vuelve a intentarlo"
-                    pausarPorSalidaDelPunto();
-                    return;
+                boolean ratonEncima = distMouse <= RADIO_TOLERANCIA_RATON;
+
+                // Esperar a que el usuario toque el punto por primera vez tras pulsar el botón
+                if (!primerContactoRealizado) {
+                    if (ratonEncima) {
+                        primerContactoRealizado = true;
+                        lblInstruccion.setText("¡Bien! No apartes el ratón del punto...");
+                        lblMensajeEstado.setText("");
+                    } else {
+                        // Aún no ha puesto el ratón encima por primera vez: no penalizar
+                        lblMensajeEstado.setText("Coloca el ratón sobre el punto rojo para comenzar...");
+                        return;
+                    }
                 }
 
-                // 2. Si el ratón sigue encima, sumar tiempo de concentración
-                segundosSeguidos += dt;
+                if (ratonEncima) {
+                    // Está dentro del rango de tolerancia -> resetear tiempo fuera y acumular éxito
+                    tiempoFuera = 0.0;
+                    segundosSeguidos += dt;
+                    lblMensajeEstado.setText("");
+                } else {
+                    // Se ha salido del punto: aplicar margen de tolerancia de fallo (1.8 segundos)
+                    tiempoFuera += dt;
+                    lblMensajeEstado.setText("¡CUIDADO! Vuelve al punto...");
 
-                // 3. Si llega a los 30 segundos continuos, ¡DISPARAR EL SUSTO!
+                    if (tiempoFuera >= MAX_TIEMPO_FUERA) {
+                        // Se acabó el margen de tolerancia -> Detener
+                        pausarPorSalidaDelPunto();
+                        return;
+                    }
+                }
+
+                // Si llega a los 30 segundos continuos, ¡DISPARAR EL SUSTO!
                 if (segundosSeguidos >= SEGUNDOS_OBJETIVO) {
                     buclePunto.stop();
                     ejecutarSustoRepentino();
                     return;
                 }
 
-                // 4. Mover el punto hacia su objetivo aleatorio
+                // Mover el punto hacia su objetivo aleatorio
                 double dx = objetivoX - puntoX;
                 double dy = objetivoY - puntoY;
                 double distObjetivo = Math.hypot(dx, dy);
 
-                if (distObjetivo < 20.0) {
-                    // Llegó al objetivo -> Elegir nuevo rumbo, distancia y velocidad aleatoria
+                if (distObjetivo < 25.0) {
                     elegirNuevoObjetivoYVelocidad();
                 } else {
                     double paso = velocidadActual * dt;
@@ -238,24 +262,22 @@ public class SalaController {
     }
 
     /**
-     * Elige una nueva coordenada y velocidad aleatoria por toda la pantalla.
+     * Elige una nueva coordenada y velocidad aleatoria dentro del área del espejo.
      */
     private void elegirNuevoObjetivoYVelocidad() {
         double ancho = Math.max(800, raiz.getWidth());
         double alto = Math.max(600, raiz.getHeight());
 
-        // Margen para mantenerse dentro de la zona visible del espejo
-        double minX = ancho * 0.18;
-        double maxX = ancho * 0.82;
-        double minY = alto * 0.16;
-        double maxY = alto * 0.80;
+        double minX = ancho * 0.20;
+        double maxX = ancho * 0.80;
+        double minY = alto * 0.18;
+        double maxY = alto * 0.78;
 
-        // Intervalos de distancia: a veces cerca, a veces lejos
         objetivoX = minX + azar.nextDouble() * (maxX - minX);
         objetivoY = minY + azar.nextDouble() * (maxY - minY);
 
-        // Intervalos de velocidad: más rápido o más lento (entre 120 px/s y 320 px/s)
-        velocidadActual = 130.0 + azar.nextDouble() * 190.0;
+        // Velocidad accesible y controlada (entre 100 y 230 px/s)
+        velocidadActual = 110.0 + azar.nextDouble() * 120.0;
     }
 
     /**
@@ -268,20 +290,22 @@ public class SalaController {
         }
 
         btnIniciar.setVisible(false);
+        lblInstruccion.setText("Coloca el cursor sobre el punto rojo para comenzar a seguirlo...");
         lblMensajeEstado.setText("");
-        lblInstruccion.setText("Mira atentamente al punto y síguelo con el ratón...");
 
-        // Posicionar el punto en el centro del espejo
+        // Posicionar el punto en el centro de la pantalla
         double ancho = Math.max(800, raiz.getWidth());
         double alto = Math.max(600, raiz.getHeight());
-        puntoX = ancho / 2.0 - 18.0;
-        puntoY = alto / 2.0 - 18.0;
+        puntoX = ancho / 2.0 - 20.0;
+        puntoY = alto / 2.0 - 20.0;
 
         nodoPunto.setLayoutX(puntoX);
         nodoPunto.setLayoutY(puntoY);
         nodoPunto.setVisible(true);
 
+        primerContactoRealizado = false;
         segundosSeguidos = 0.0;
+        tiempoFuera = 0.0;
         ultimoTiempoNano = 0;
         elegirNuevoObjetivoYVelocidad();
 
@@ -290,7 +314,7 @@ public class SalaController {
     }
 
     /**
-     * Se llama cuando el usuario pierde el punto.
+     * Se llama cuando el usuario pierde el punto durante más de 1.8 segundos.
      */
     private void pausarPorSalidaDelPunto() {
         juegoEnCurso = false;
@@ -298,7 +322,7 @@ public class SalaController {
         nodoPunto.setVisible(false);
 
         lblMensajeEstado.setText("Vuelve a intentarlo...");
-        lblInstruccion.setText("Has apartado la mirada o el ratón. Concéntrate de nuevo.");
+        lblInstruccion.setText("Has apartado el ratón del punto. Pulsa para reiniciar.");
         btnIniciar.setText("VOLVER A INTENTAR");
         btnIniciar.setVisible(true);
     }
@@ -331,7 +355,7 @@ public class SalaController {
             if (sustoUrl != null) {
                 audioClipSusto = new AudioClip(sustoUrl.toExternalForm());
                 audioClipSusto.setVolume(1.0);
-                // Precalentar el buffer de sonido para eliminar cualquier latencia
+                // Precalentar el buffer de sonido para eliminar latencia
                 audioClipSusto.play(0.0);
             }
         } catch (Exception e) {
@@ -340,8 +364,7 @@ public class SalaController {
     }
 
     /**
-     * Temporizador de piedad (60s) según rúbrica:
-     * Si transcurren 60 segundos sin resolver, la sala entrega la letra.
+     * Temporizador de piedad (60s) según rúbrica.
      */
     private void iniciarTemporizadorPiedad() {
         detenerTemporizadores();
@@ -414,6 +437,7 @@ public class SalaController {
         detenerTemporizadores();
         resuelto = false;
         juegoEnCurso = false;
+        primerContactoRealizado = false;
 
         if (buclePunto != null) {
             buclePunto.stop();
@@ -435,6 +459,7 @@ public class SalaController {
         btnIniciar.setVisible(true);
 
         segundosSeguidos = 0.0;
+        tiempoFuera = 0.0;
         ultimoTiempoNano = 0;
 
         // Reiniciar temporizador de piedad
