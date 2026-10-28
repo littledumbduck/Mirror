@@ -60,6 +60,8 @@ Para compilar y ejecutar la aplicación a pantalla completa:
 mvn clean javafx:run
 ```
 
+*(En este equipo, Maven ha quedado instalado y configurado en el `PATH` del usuario).*
+
 ### Controles de la mesa durante el túnel:
 * **Clic en el espejo / Botón "TOCAR EL CRISTAL" / Enter:** Desencadena el susto controlado y la entrega de la letra **D**.
 * **Tecla `F12`:** Reinicia la sala al estado original en cualquier momento.
