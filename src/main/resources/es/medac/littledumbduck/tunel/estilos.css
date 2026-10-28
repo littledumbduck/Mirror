@@ -1,99 +1,89 @@
 /* Hoja de estilos con tema oscuro de terror - Sala 4: El Espejo */
 
 .fondo-principal {
-    -fx-background-color: #030305;
+    -fx-background-color: #000000;
 }
 
-.capa-ambiente {
-    -fx-background-color: radial-gradient(center 50% 50%, radius 70%, rgba(20, 0, 0, 0.4), #000000);
-}
-
-.texto-maldito-titulo {
-    -fx-text-fill: #b30000;
-    -fx-font-size: 54px;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #ff0000, 18, 0.6, 0, 0);
-}
-
-.texto-instruccion {
-    -fx-text-fill: #8a8a9a;
-    -fx-font-size: 18px;
-    -fx-font-style: italic;
-    -fx-effect: dropshadow(gaussian, #000000, 6, 0.8, 0, 0);
+.capa-espejo {
+    -fx-background-color: #000000;
+    -fx-alignment: center;
 }
 
 .contenedor-espejo {
     -fx-background-color: transparent;
     -fx-cursor: hand;
+    -fx-alignment: center;
 }
 
 .imagen-espejo {
-    -fx-effect: dropshadow(three-pass-box, #1a0000, 25, 0.7, 0, 0);
+    -fx-effect: dropshadow(three-pass-box, #1a0000, 30, 0.8, 0, 0);
 }
 
-.imagen-espectro {
-    -fx-effect: dropshadow(gaussian, #ff1a1a, 35, 0.8, 0, 0);
+.pupila-terror {
+    -fx-fill: #ff1a1a;
+    -fx-effect: dropshadow(gaussian, #ffffff, 12, 0.9, 0, 0);
 }
 
 .capa-niebla {
-    -fx-background-color: rgba(10, 15, 20, 0.15);
+    -fx-background-color: radial-gradient(center 50% 50%, radius 65%, transparent, rgba(5, 0, 0, 0.45));
 }
 
-.letra-revelada {
-    -fx-text-fill: #ff1a1a;
-    -fx-font-size: 150px;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #ffffff, 30, 0.9, 0, 0);
+.caja-inferior {
+    -fx-padding: 0 0 25 0;
+    -fx-alignment: bottom-center;
 }
 
-.subtexto-letra {
-    -fx-text-fill: #f5f5f5;
-    -fx-font-size: 20px;
+.texto-maldito-titulo {
+    -fx-text-fill: #b30000;
+    -fx-font-size: 52px;
     -fx-font-weight: bold;
-    -fx-background-color: rgba(0, 0, 0, 0.75);
-    -fx-padding: 6 16 6 16;
-    -fx-background-radius: 6;
-    -fx-effect: dropshadow(gaussian, #ff0000, 10, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ff0000, 18, 0.7, 0, 0);
+}
+
+.texto-instruccion {
+    -fx-text-fill: #9a9ab0;
+    -fx-font-size: 19px;
+    -fx-font-style: italic;
+    -fx-effect: dropshadow(gaussian, #000000, 8, 0.8, 0, 0);
 }
 
 .caja-interaccion {
-    -fx-padding: 10;
+    -fx-padding: 8;
 }
 
 .campo-terror {
-    -fx-background-color: #0d0d12;
-    -fx-text-fill: #e6e6e6;
+    -fx-background-color: #0a0a0f;
+    -fx-text-fill: #ffffff;
     -fx-font-size: 18px;
     -fx-border-color: #4a0d0d;
     -fx-border-width: 2px;
-    -fx-border-radius: 5px;
-    -fx-background-radius: 5px;
-    -fx-padding: 8 14 8 14;
-    -fx-prompt-text-fill: #555566;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10 16 10 16;
+    -fx-prompt-text-fill: #666677;
 }
 
 .campo-terror:focused {
-    -fx-border-color: #aa1111;
-    -fx-effect: dropshadow(gaussian, #aa1111, 10, 0.5, 0, 0);
+    -fx-border-color: #cc1111;
+    -fx-effect: dropshadow(gaussian, #ff2222, 12, 0.6, 0, 0);
 }
 
 .boton-terror {
-    -fx-background-color: linear-gradient(to bottom, #4a0000, #220000);
-    -fx-text-fill: #ffcccc;
+    -fx-background-color: linear-gradient(to bottom, #5a0000, #220000);
+    -fx-text-fill: #ffffff;
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-border-color: #7a1111;
+    -fx-border-color: #881111;
     -fx-border-width: 2px;
-    -fx-border-radius: 5px;
-    -fx-background-radius: 5px;
-    -fx-padding: 8 20 8 20;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 10 24 10 24;
     -fx-cursor: hand;
 }
 
 .boton-terror:hover {
-    -fx-background-color: linear-gradient(to bottom, #7a0000, #440000);
-    -fx-text-fill: #ffffff;
-    -fx-effect: dropshadow(gaussian, #ff2222, 14, 0.6, 0, 0);
+    -fx-background-color: linear-gradient(to bottom, #880000, #440000);
+    -fx-effect: dropshadow(gaussian, #ff2222, 16, 0.7, 0, 0);
 }
 
 .boton-terror:pressed {
@@ -101,8 +91,56 @@
 }
 
 .texto-estado {
-    -fx-text-fill: #aa2222;
+    -fx-text-fill: #cc2222;
+    -fx-font-size: 17px;
+    -fx-font-style: italic;
+}
+
+/* Capa de jumpscare repentino a pantalla completa */
+.capa-jumpscare {
+    -fx-background-color: #000000;
+    -fx-alignment: center;
+}
+
+.imagen-jumpscare {
+    -fx-alignment: center;
+}
+
+/* Capa de entrega de letra "D" */
+.capa-letra {
+    -fx-background-color: #030306;
+    -fx-alignment: center;
+}
+
+.texto-victoria-titulo {
+    -fx-text-fill: #888899;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #000000, 10, 0.8, 0, 0);
+}
+
+.letra-revelada {
+    -fx-text-fill: #ff1111;
+    -fx-font-size: 220px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #ffffff, 35, 0.9, 0, 0);
+}
+
+.subtexto-letra {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(60, 0, 0, 0.65);
+    -fx-padding: 8 24 8 24;
+    -fx-background-radius: 8;
+    -fx-border-color: #990000;
+    -fx-border-width: 2px;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, #ff0000, 14, 0.6, 0, 0);
+}
+
+.texto-aviso-reinicio {
+    -fx-text-fill: #555566;
     -fx-font-size: 16px;
     -fx-font-style: italic;
-    -fx-effect: dropshadow(gaussian, #000000, 8, 0.8, 0, 0);
 }
