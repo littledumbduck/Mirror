@@ -1,13 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
 
-<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="es.medac.littledumbduck.tunel.SalaController"
-           styleClass="fondo-principal" stylesheets="@estilos.css">
-    <VBox alignment="CENTER" spacing="20">
-        <Label text="MÍRATE..." styleClass="texto-maldito"/>
+<StackPane fx:id="raiz" prefHeight="900.0" prefWidth="1400.0" 
+           styleClass="fondo-principal" stylesheets="@estilos.css" 
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="es.medac.littledumbduck.tunel.SalaController">
+
+    <!-- Capa de fondo tétrico con viñeta -->
+    <StackPane fx:id="capaAmbiente" styleClass="capa-ambiente" />
+
+    <!-- Contenedor central del espejo -->
+    <VBox alignment="CENTER" spacing="15.0">
+        <!-- Título principal de la sala -->
+        <Label fx:id="lblTitulo" styleClass="texto-maldito-titulo" text="M Í R A T E . . ." />
+        <Label fx:id="lblInstruccion" styleClass="texto-instruccion" text="¿Qué viste en el retrato? Toca el cristal o introduce lo que viste..." />
+
+        <!-- Marco y superficie del espejo -->
+        <StackPane fx:id="contenedorEspejo" maxWidth="820.0" maxHeight="560.0" styleClass="contenedor-espejo">
+            <!-- Imagen del marco del espejo gótico -->
+            <ImageView fx:id="imgEspejo" fitHeight="550.0" fitWidth="800.0" pickOnBounds="true" preserveRatio="true" styleClass="imagen-espejo" />
+
+            <!-- Rostro espectral del susto (inicialmente invisible) -->
+            <ImageView fx:id="imgEspectro" fitHeight="480.0" fitWidth="520.0" opacity="0.0" pickOnBounds="true" preserveRatio="true" styleClass="imagen-espectro" />
+
+            <!-- Capa de niebla o reflejo sobre el cristal -->
+            <StackPane fx:id="capaNiebla" styleClass="capa-niebla" />
+
+            <!-- Letra D entregada tras el susto (inicialmente invisible) -->
+            <VBox alignment="CENTER" spacing="5.0">
+                <Label fx:id="lblLetraD" opacity="0.0" styleClass="letra-revelada" text="D" />
+                <Label fx:id="lblSubLetra" opacity="0.0" styleClass="subtexto-letra" text="EL ESPEJO TE HA ENTREGADO SU LETRA" />
+            </VBox>
+        </StackPane>
+
+        <!-- Zona de interacción para el visitante -->
+        <HBox fx:id="cajaInteraccion" alignment="CENTER" spacing="15.0" styleClass="caja-interaccion">
+            <TextField fx:id="txtEntrada" promptText="Introduce lo que viste en sus ojos..." styleClass="campo-terror" prefWidth="340.0" />
+            <Button fx:id="btnInteractuar" mnemonicParsing="false" onAction="#onInteractuar" styleClass="boton-terror" text="TOCAR EL CRISTAL" />
+        </HBox>
+
+        <!-- Mensaje de estado, ayuda o piedad tras 60 segundos -->
+        <Label fx:id="lblMensajeEstado" styleClass="texto-estado" text="" />
     </VBox>
+
 </StackPane>

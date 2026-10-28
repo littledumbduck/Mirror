@@ -1,8 +1,108 @@
+/* Hoja de estilos con tema oscuro de terror - Sala 4: El Espejo */
+
 .fondo-principal {
-    -fx-background-color: #050505;
+    -fx-background-color: #030305;
 }
 
-.texto-maldito {
+.capa-ambiente {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 70%, rgba(20, 0, 0, 0.4), #000000);
+}
+
+.texto-maldito-titulo {
     -fx-text-fill: #b30000;
-    -fx-font-size: 32px;
+    -fx-font-size: 54px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #ff0000, 18, 0.6, 0, 0);
+}
+
+.texto-instruccion {
+    -fx-text-fill: #8a8a9a;
+    -fx-font-size: 18px;
+    -fx-font-style: italic;
+    -fx-effect: dropshadow(gaussian, #000000, 6, 0.8, 0, 0);
+}
+
+.contenedor-espejo {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.imagen-espejo {
+    -fx-effect: dropshadow(three-pass-box, #1a0000, 25, 0.7, 0, 0);
+}
+
+.imagen-espectro {
+    -fx-effect: dropshadow(gaussian, #ff1a1a, 35, 0.8, 0, 0);
+}
+
+.capa-niebla {
+    -fx-background-color: rgba(10, 15, 20, 0.15);
+}
+
+.letra-revelada {
+    -fx-text-fill: #ff1a1a;
+    -fx-font-size: 150px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #ffffff, 30, 0.9, 0, 0);
+}
+
+.subtexto-letra {
+    -fx-text-fill: #f5f5f5;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(0, 0, 0, 0.75);
+    -fx-padding: 6 16 6 16;
+    -fx-background-radius: 6;
+    -fx-effect: dropshadow(gaussian, #ff0000, 10, 0.5, 0, 0);
+}
+
+.caja-interaccion {
+    -fx-padding: 10;
+}
+
+.campo-terror {
+    -fx-background-color: #0d0d12;
+    -fx-text-fill: #e6e6e6;
+    -fx-font-size: 18px;
+    -fx-border-color: #4a0d0d;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 8 14 8 14;
+    -fx-prompt-text-fill: #555566;
+}
+
+.campo-terror:focused {
+    -fx-border-color: #aa1111;
+    -fx-effect: dropshadow(gaussian, #aa1111, 10, 0.5, 0, 0);
+}
+
+.boton-terror {
+    -fx-background-color: linear-gradient(to bottom, #4a0000, #220000);
+    -fx-text-fill: #ffcccc;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-border-color: #7a1111;
+    -fx-border-width: 2px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 8 20 8 20;
+    -fx-cursor: hand;
+}
+
+.boton-terror:hover {
+    -fx-background-color: linear-gradient(to bottom, #7a0000, #440000);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, #ff2222, 14, 0.6, 0, 0);
+}
+
+.boton-terror:pressed {
+    -fx-background-color: #110000;
+}
+
+.texto-estado {
+    -fx-text-fill: #aa2222;
+    -fx-font-size: 16px;
+    -fx-font-style: italic;
+    -fx-effect: dropshadow(gaussian, #000000, 8, 0.8, 0, 0);
 }
