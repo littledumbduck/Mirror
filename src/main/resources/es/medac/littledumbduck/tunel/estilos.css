@@ -19,9 +19,8 @@
     -fx-effect: dropshadow(three-pass-box, #1a0000, 30, 0.8, 0, 0);
 }
 
-.pupila-terror {
-    -fx-fill: #ff1a1a;
-    -fx-effect: dropshadow(gaussian, #ffffff, 12, 0.9, 0, 0);
+.imagen-ojo {
+    -fx-effect: dropshadow(gaussian, #ff2222, 14, 0.85, 0, 0);
 }
 
 .capa-niebla {

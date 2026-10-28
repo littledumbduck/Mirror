@@ -8,7 +8,6 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Circle?>
 
 <StackPane fx:id="raiz" prefHeight="900.0" prefWidth="1400.0" 
            styleClass="fondo-principal" stylesheets="@estilos.css" 
@@ -22,16 +21,16 @@
             <!-- Imagen del marco del espejo gótico -->
             <ImageView fx:id="imgEspejo" pickOnBounds="true" preserveRatio="true" styleClass="imagen-espejo" />
 
-            <!-- Rostro reflejado dentro del espejo con ojos que siguen el cursor -->
+            <!-- Rostro reflejado dentro del espejo con ojos (imágenes) que siguen el cursor -->
             <StackPane fx:id="contenedorRostro" alignment="CENTER" maxWidth="520.0" maxHeight="520.0">
-                <ImageView fx:id="imgRostroEspejo" fitHeight="500.0" fitWidth="500.0" opacity="0.82" pickOnBounds="true" preserveRatio="true" />
+                <ImageView fx:id="imgRostroEspejo" fitHeight="520.0" fitWidth="520.0" opacity="0.88" pickOnBounds="true" preserveRatio="true" />
                 
-                <!-- Panel de ojos interactivos superpuestos en las cuencas -->
-                <Pane fx:id="panelOjos" prefHeight="500.0" prefWidth="500.0">
-                    <!-- Cuenca y pupila izquierda (X~193, Y~217 relativo a 500x500) -->
-                    <Circle fx:id="pupilaIzquierda" centerX="193.0" centerY="217.0" radius="7.0" styleClass="pupila-terror" />
-                    <!-- Cuenca y pupila derecha (X~291, Y~222 relativo a 500x500) -->
-                    <Circle fx:id="pupilaDerecha" centerX="291.0" centerY="222.0" radius="7.0" styleClass="pupila-terror" />
+                <!-- Panel de ojos interactivos superpuestos en las cuencas oculares -->
+                <Pane fx:id="panelOjos" prefHeight="520.0" prefWidth="520.0">
+                    <!-- Ojo izquierdo: imagen que sigue al ratón dentro de la cuenca (X~192, Y~215) -->
+                    <ImageView fx:id="imgOjoIzquierdo" fitHeight="38.0" fitWidth="38.0" layoutX="192.0" layoutY="215.0" pickOnBounds="true" preserveRatio="true" styleClass="imagen-ojo" />
+                    <!-- Ojo derecho: imagen que sigue al ratón dentro de la cuenca (X~281, Y~212) -->
+                    <ImageView fx:id="imgOjoDerecho" fitHeight="38.0" fitWidth="38.0" layoutX="281.0" layoutY="212.0" pickOnBounds="true" preserveRatio="true" styleClass="imagen-ojo" />
                 </Pane>
             </StackPane>
 

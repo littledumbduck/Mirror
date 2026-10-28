@@ -26,8 +26,8 @@ import javafx.util.Duration;
 /**
  * Controlador para la Sala 4: El Espejo (Túnel del Terror).
  * - Espejo a gran escala ocupando casi toda la pantalla.
- * - Rostro reflejado con ojos cuyas pupilas siguen el cursor del ratón en tiempo real.
- * - Susto repentino e instantáneo (pantalla completa sin transición) con sonido durante 5 segundos.
+ * - Rostro reflejado con ojos (imágenes individuales) que siguen el cursor del ratón en tiempo real.
+ * - Susto repentino e instantáneo (pantalla completa sin transición) con sonido inmediato durante 5 segundos.
  * - Entrega posterior de la letra secreta "D" con animación de latido.
  * - Temporizador de piedad (60s) y autorreinicio (o mediante tecla F12).
  */
@@ -46,8 +46,8 @@ public class SalaController {
     @FXML private StackPane contenedorRostro;
     @FXML private ImageView imgRostroEspejo;
     @FXML private Pane panelOjos;
-    @FXML private Circle pupilaIzquierda;
-    @FXML private Circle pupilaDerecha;
+    @FXML private ImageView imgOjoIzquierdo;
+    @FXML private ImageView imgOjoDerecho;
     @FXML private StackPane capaNiebla;
     @FXML private Label lblTitulo;
     @FXML private Label lblInstruccion;
@@ -79,8 +79,8 @@ public class SalaController {
 
     private boolean resuelto = false;
 
-    // Radio máximo de movimiento de la pupila dentro de la cuenca del ojo
-    private static final double RADIO_MAX_PUPILA = 7.5;
+    // Radio máximo de desplazamiento del globo ocular dentro de la cuenca
+    private static final double RADIO_MAX_OJO = 8.0;
     // Sensibilidad del seguimiento de la mirada
     private static final double FACTOR_DISTANCIA = 0.025;
     // Duración del scream solicitada (5 segundos)
@@ -120,7 +120,7 @@ public class SalaController {
     }
 
     /**
-     * Carga de imágenes: espejo, rostro de reflejo con ojos interactivos, y scream para susto.
+     * Carga de imágenes: espejo, rostro de reflejo, ojos individuales e imagen del susto.
      */
     private void cargarImagenes() {
         try {
@@ -132,6 +132,19 @@ public class SalaController {
             InputStream rostroStream = getClass().getResourceAsStream("images/rostro_espejo.png");
             if (rostroStream != null) {
                 imgRostroEspejo.setImage(new Image(rostroStream));
+            }
+
+            // Carga de la imagen de los ojos que siguen el cursor
+            InputStream ojoStream = getClass().getResourceAsStream("images/ojo_terror.png");
+            if (ojoStream != null) {
+                Image ojoImg = new Image(ojoStream);
+                imgOjoIzquierdo.setImage(ojoImg);
+                imgOjoDerecho.setImage(ojoImg);
+
+                // Recorte circular perfecto para los globos oculares
+                double radio = 19.0;
+                imgOjoIzquierdo.setClip(new Circle(radio, radio, radio));
+                imgOjoDerecho.setClip(new Circle(radio, radio, radio));
             }
 
             InputStream jumpscareStream = getClass().getResourceAsStream("images/reflejo_espectro.png");
@@ -157,9 +170,9 @@ public class SalaController {
     }
 
     /**
-     * Lógica interactiva de seguimiento ocular:
+     * Lógica interactiva de seguimiento ocular con imágenes:
      * Calcula el ángulo entre cada ojo y la posición del cursor del ratón en la ventana,
-     * orientando las pupilas en tiempo real hacia donde mira el visitante.
+     * orientando las imágenes de los ojos en tiempo real hacia donde mira el visitante.
      */
     private void configurarSeguimientoOjos() {
         raiz.setOnMouseMoved(event -> {
@@ -169,23 +182,26 @@ public class SalaController {
             double mouseX = event.getSceneX();
             double mouseY = event.getSceneY();
 
-            actualizarPupila(pupilaIzquierda, mouseX, mouseY);
-            actualizarPupila(pupilaDerecha, mouseX, mouseY);
+            actualizarOjo(imgOjoIzquierdo, mouseX, mouseY);
+            actualizarOjo(imgOjoDerecho, mouseX, mouseY);
         });
     }
 
-    private void actualizarPupila(Circle pupila, double mouseX, double mouseY) {
+    private void actualizarOjo(ImageView imgOjo, double mouseX, double mouseY) {
         try {
-            Point2D centroOjoEscena = pupila.localToScene(pupila.getCenterX(), pupila.getCenterY());
+            double mitadAncho = imgOjo.getFitWidth() / 2.0;
+            double mitadAlto = imgOjo.getFitHeight() / 2.0;
+            Point2D centroOjoEscena = imgOjo.localToScene(mitadAncho, mitadAlto);
+
             double dx = mouseX - centroOjoEscena.getX();
             double dy = mouseY - centroOjoEscena.getY();
             double angulo = Math.atan2(dy, dx);
-            double distancia = Math.min(RADIO_MAX_PUPILA, Math.hypot(dx, dy) * FACTOR_DISTANCIA);
+            double distancia = Math.min(RADIO_MAX_OJO, Math.hypot(dx, dy) * FACTOR_DISTANCIA);
 
-            pupila.setTranslateX(Math.cos(angulo) * distancia);
-            pupila.setTranslateY(Math.sin(angulo) * distancia);
+            imgOjo.setTranslateX(Math.cos(angulo) * distancia);
+            imgOjo.setTranslateY(Math.sin(angulo) * distancia);
         } catch (Exception ignored) {
-            // Protección ante layout inicial
+            // Protección ante inicialización de escena
         }
     }
 
@@ -217,6 +233,8 @@ public class SalaController {
             if (sustoUrl != null) {
                 audioClipSusto = new AudioClip(sustoUrl.toExternalForm());
                 audioClipSusto.setVolume(1.0);
+                // Precalentar el buffer de sonido a volumen 0 para eliminar latencia
+                audioClipSusto.play(0.0);
             }
         } catch (Exception e) {
             System.err.println("Aviso audio susto: " + e.getMessage());
@@ -258,23 +276,23 @@ public class SalaController {
 
     /**
      * Susto repentino e instantáneo:
+     * - Disparo de audio en el milisegundo 0 (adelantado y sin latencia).
      * - CAMBIO DE PANTALLA DE GOLPE SIN TRANSICIÓN a pantalla completa.
-     * - Reproducción inmediata del sonido del scream.
      * - Se mantiene durante ~5 segundos antes de mostrar la letra 'D'.
      */
     public void ejecutarSustoRepentino() {
         resuelto = true;
         detenerTemporizadores();
 
-        // 1. Cambio súbito de pantalla (sin transición gradual)
-        capaEspejo.setVisible(false);
-        capaLetra.setVisible(false);
-        capaJumpscare.setVisible(true);
-
-        // 2. Reproducción inmediata del scream
+        // 1. DISPARAR AUDIO INMEDIATAMENTE EN EL MILISEGUNDO 0
         if (audioClipSusto != null) {
             audioClipSusto.play();
         }
+
+        // 2. Cambio súbito de pantalla (sin transición gradual)
+        capaEspejo.setVisible(false);
+        capaLetra.setVisible(false);
+        capaJumpscare.setVisible(true);
 
         // 3. Duración de 5 segundos de scream antes de entregar la letra "D"
         temporizadorScream = new PauseTransition(Duration.seconds(SEGUNDOS_SCREAM));
@@ -321,11 +339,11 @@ public class SalaController {
         capaLetra.setVisible(false);
         capaEspejo.setVisible(true);
 
-        // Resetear pupilas
-        pupilaIzquierda.setTranslateX(0);
-        pupilaIzquierda.setTranslateY(0);
-        pupilaDerecha.setTranslateX(0);
-        pupilaDerecha.setTranslateY(0);
+        // Resetear ojos
+        imgOjoIzquierdo.setTranslateX(0);
+        imgOjoIzquierdo.setTranslateY(0);
+        imgOjoDerecho.setTranslateX(0);
+        imgOjoDerecho.setTranslateY(0);
 
         txtEntrada.clear();
         lblMensajeEstado.setText("");
