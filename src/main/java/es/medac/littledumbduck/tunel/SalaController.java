@@ -1,8 +1,12 @@
 package es.medac.littledumbduck.tunel;
 
 import java.io.InputStream;
+import java.net.URL;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
+import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -12,13 +16,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 /**
  * Controlador para la Sala 4: El Espejo (Túnel del Terror).
- * Reto 2: Lógica de interacción, entrega de la letra D,
- * temporizador de piedad (60s) y autorreinicio (automático y con tecla F12).
+ * Reto 3: Animaciones visuales con Transition/Timeline, susto controlado
+ * (escala y aparición sin destellos estroboscópicos por seguridad de fotosensibilidad),
+ * música ambiente en bucle con MediaPlayer y efecto de impacto con AudioClip.
  */
 public class SalaController {
 
@@ -40,6 +48,13 @@ public class SalaController {
     private Font fuenteTerror;
     private Timeline temporizadorPiedad;
     private PauseTransition temporizadorReinicio;
+    private FadeTransition animacionNiebla;
+    private ScaleTransition animacionLatidoLetra;
+    
+    // Elementos de audio requeridos por la rúbrica
+    private MediaPlayer reproductorAmbiente;
+    private AudioClip audioClipSusto;
+
     private boolean resuelto = false;
 
     // Constante de tiempo de piedad requerida por la rúbrica (60 segundos)
@@ -52,6 +67,8 @@ public class SalaController {
         cargarFuentePersonalizada();
         cargarImagenes();
         configurarInteraccionBase();
+        configurarAnimacionesAmbiente();
+        inicializarAudio();
         iniciarTemporizadorPiedad();
     }
 
@@ -69,7 +86,7 @@ public class SalaController {
                 }
             }
         } catch (Exception e) {
-            System.err.println("No se pudo cargar la fuente personalizada: " + e.getMessage());
+            System.err.println("Aviso: No se pudo cargar la fuente personalizada: " + e.getMessage());
         }
     }
 
@@ -88,12 +105,64 @@ public class SalaController {
                 imgEspectro.setImage(new Image(espectroStream));
             }
         } catch (Exception e) {
-            System.err.println("Error al cargar imágenes: " + e.getMessage());
+            System.err.println("Aviso al cargar imágenes: " + e.getMessage());
         }
     }
 
     /**
-     * Configuración visual y eventos base de interacción.
+     * Configura el bucle de sonido ambiental con MediaPlayer y el efecto de impacto con AudioClip.
+     */
+    private void inicializarAudio() {
+        // Carga de sonido ambiente (busca mp3 y luego wav)
+        try {
+            URL ambienteUrl = getClass().getResource("sounds/ambiente.mp3");
+            if (ambienteUrl == null) {
+                ambienteUrl = getClass().getResource("sounds/ambiente.wav");
+            }
+            if (ambienteUrl != null) {
+                Media mediaAmbiente = new Media(ambienteUrl.toExternalForm());
+                reproductorAmbiente = new MediaPlayer(mediaAmbiente);
+                reproductorAmbiente.setCycleCount(MediaPlayer.INDEFINITE);
+                reproductorAmbiente.setVolume(0.55);
+                reproductorAmbiente.play();
+            } else {
+                System.out.println("Nota: Coloque 'ambiente.mp3' en sounds/ para activar el audio de fondo.");
+            }
+        } catch (Exception e) {
+            System.err.println("Aviso al iniciar MediaPlayer de ambiente: " + e.getMessage());
+        }
+
+        // Carga de efecto de susto para AudioClip
+        try {
+            URL sustoUrl = getClass().getResource("sounds/susto.mp3");
+            if (sustoUrl == null) {
+                sustoUrl = getClass().getResource("sounds/susto.wav");
+            }
+            if (sustoUrl != null) {
+                audioClipSusto = new AudioClip(sustoUrl.toExternalForm());
+                audioClipSusto.setVolume(1.0);
+            } else {
+                System.out.println("Nota: Coloque 'susto.mp3' o 'susto.wav' en sounds/ para el efecto sonoro.");
+            }
+        } catch (Exception e) {
+            System.err.println("Aviso al preparar AudioClip de susto: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Animaciones visuales ambientales continuas para generar tensión antes del susto.
+     */
+    private void configurarAnimacionesAmbiente() {
+        animacionNiebla = new FadeTransition(Duration.seconds(3.5), capaNiebla);
+        animacionNiebla.setFromValue(0.15);
+        animacionNiebla.setToValue(0.45);
+        animacionNiebla.setAutoReverse(true);
+        animacionNiebla.setCycleCount(Timeline.INDEFINITE);
+        animacionNiebla.play();
+    }
+
+    /**
+     * Configuración de eventos de interacción.
      */
     private void configurarInteraccionBase() {
         // Tocar el cristal del espejo directamente desencadena el susto
@@ -104,8 +173,7 @@ public class SalaController {
     }
 
     /**
-     * Temporizador de piedad de 60 segundos requerido por la rúbrica:
-     * Si no interactúan en 60 segundos, la sala se apiada y entrega la letra.
+     * Temporizador de piedad de 60 segundos requerido por la rúbrica.
      */
     private void iniciarTemporizadorPiedad() {
         detenerTemporizadores();
@@ -128,13 +196,19 @@ public class SalaController {
     }
 
     /**
-     * Lógica de susto y entrega de la letra D.
+     * Lógica de susto controlado con Transition y entrega de la letra D con efecto visual.
+     * Seguro para fotosensibilidad (sin destellos estroboscópicos).
      */
     public void ejecutarSecuenciaSustoYEntregaLetra(boolean porPiedad) {
         resuelto = true;
         detenerTemporizadores();
 
-        // Ocultar caja de controles para centrar el foco en el espejo
+        // Reproducir efecto sonoro de susto
+        if (audioClipSusto != null) {
+            audioClipSusto.play();
+        }
+
+        // Ocultar caja de interacción
         cajaInteraccion.setVisible(false);
         txtEntrada.setDisable(true);
         btnInteractuar.setDisable(true);
@@ -143,12 +217,69 @@ public class SalaController {
             lblMensajeEstado.setText("¡EL REFLEJO TE HA RECLAMADO!");
         }
 
-        // Mostrar la aparición y la letra 'D'
-        imgEspectro.setOpacity(1.0);
-        lblLetraD.setOpacity(1.0);
-        lblSubLetra.setOpacity(1.0);
+        // Susto controlado: Escala y Fade in suave del rostro espectral
+        imgEspectro.setScaleX(0.7);
+        imgEspectro.setScaleY(0.7);
+        imgEspectro.setOpacity(0.0);
 
-        programarAutorreinicio();
+        FadeTransition aparicionEspectro = new FadeTransition(Duration.millis(350), imgEspectro);
+        aparicionEspectro.setFromValue(0.0);
+        aparicionEspectro.setToValue(1.0);
+
+        ScaleTransition zoomEspectro = new ScaleTransition(Duration.millis(450), imgEspectro);
+        zoomEspectro.setFromValue(0.7);
+        zoomEspectro.setToValue(1.15);
+
+        ParallelTransition sustoAnimacion = new ParallelTransition(aparicionEspectro, zoomEspectro);
+
+        // Al terminar el impacto del susto, revelamos la letra 'D'
+        sustoAnimacion.setOnFinished(e -> {
+            // Disminuir ligeramente la opacidad del espectro para resaltar la letra
+            FadeTransition atenuarEspectro = new FadeTransition(Duration.millis(600), imgEspectro);
+            atenuarEspectro.setToValue(0.5);
+            atenuarEspectro.play();
+
+            revelarLetraDConEfecto();
+        });
+
+        sustoAnimacion.play();
+    }
+
+    /**
+     * Revela la letra D con efectos de animación (Fade, Scale y pulso continuo).
+     */
+    private void revelarLetraDConEfecto() {
+        lblLetraD.setScaleX(0.4);
+        lblLetraD.setScaleY(0.4);
+        lblLetraD.setOpacity(0.0);
+        lblSubLetra.setOpacity(0.0);
+
+        FadeTransition fadeLetra = new FadeTransition(Duration.millis(700), lblLetraD);
+        fadeLetra.setFromValue(0.0);
+        fadeLetra.setToValue(1.0);
+
+        ScaleTransition scaleLetra = new ScaleTransition(Duration.millis(700), lblLetraD);
+        scaleLetra.setFromValue(0.4);
+        scaleLetra.setToValue(1.0);
+
+        FadeTransition fadeSubLetra = new FadeTransition(Duration.millis(800), lblSubLetra);
+        fadeSubLetra.setFromValue(0.0);
+        fadeSubLetra.setToValue(1.0);
+
+        ParallelTransition transicionRevelacion = new ParallelTransition(fadeLetra, scaleLetra, fadeSubLetra);
+        transicionRevelacion.setOnFinished(ev -> {
+            // Efecto de pulso/latido espectral en la letra D
+            animacionLatidoLetra = new ScaleTransition(Duration.seconds(1.2), lblLetraD);
+            animacionLatidoLetra.setFromValue(1.0);
+            animacionLatidoLetra.setToValue(1.08);
+            animacionLatidoLetra.setAutoReverse(true);
+            animacionLatidoLetra.setCycleCount(Timeline.INDEFINITE);
+            animacionLatidoLetra.play();
+
+            programarAutorreinicio();
+        });
+
+        transicionRevelacion.play();
     }
 
     /**
@@ -167,17 +298,28 @@ public class SalaController {
         detenerTemporizadores();
         resuelto = false;
 
-        // Restaurar visibilidad y opacidades iniciales
+        if (animacionLatidoLetra != null) {
+            animacionLatidoLetra.stop();
+        }
+
+        // Restaurar estado visual inicial
         imgEspectro.setOpacity(0.0);
+        imgEspectro.setScaleX(1.0);
+        imgEspectro.setScaleY(1.0);
+
         lblLetraD.setOpacity(0.0);
+        lblLetraD.setScaleX(1.0);
+        lblLetraD.setScaleY(1.0);
+
         lblSubLetra.setOpacity(0.0);
         lblMensajeEstado.setText("");
+
         txtEntrada.clear();
         txtEntrada.setDisable(false);
         btnInteractuar.setDisable(false);
         cajaInteraccion.setVisible(true);
 
-        // Volver a iniciar el temporizador de 60 segundos para el siguiente grupo
+        // Volver a iniciar el temporizador de 60 segundos
         iniciarTemporizadorPiedad();
     }
 
