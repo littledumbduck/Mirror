@@ -1,0 +1,8 @@
+.fondo-principal {
+    -fx-background-color: #050505;
+}
+
+.texto-maldito {
+    -fx-text-fill: #b30000;
+    -fx-font-size: 32px;
+}
