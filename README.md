@@ -13,7 +13,7 @@ Esta aplicación JavaFX forma parte del escape room interactivo del Túnel del T
 
 * **Pantalla de 1.º (HTML):** Un cuadro con un retrato antiguo cuyos ojos siguen al visitante a través de la pantalla mientras recorre la sala.
 * **Pantalla de 2.º (JavaFX - Sala 4 «El Espejo»):** El espejo ocupa casi la totalidad de la pantalla. Un botón permite iniciar la prueba de concentración. Al pulsarlo, el punto rojo aparece en el centro y no penaliza hasta que el usuario lo toca por primera vez. Una vez iniciado el seguimiento, cuenta con un margen de tolerancia generoso de 85px y una ventana de gracia de fallo de 1.8 segundos antes de perder el contacto.
-* **Desencadenante y susto repentino:** Tras **30 segundos** de concentración continua siguiendo el punto, se produce un **cambio de pantalla instantáneo y repentino a pantalla completa**, sin transición gradual, con disparo sonoro fulminante en el milisegundo 0 (`susto.mp3`), mostrando el rostro aterrador desencajado.
+* **Desencadenante y susto repentino:** Tras **20 segundos** de concentración continua siguiendo el punto, se produce un **cambio de pantalla instantáneo y repentino a pantalla completa**, sin transición gradual, con disparo sonoro fulminante en el milisegundo 0 (`susto.mp3`), mostrando el rostro aterrador desencajado.
 * **Duración y entrega de la letra:** El scream a pantalla completa se sostiene durante **5 segundos** generando el clímax de terror tras la intensa concentración. Pasados esos 5 segundos, la pantalla conmuta revelando la letra secreta **`D`** con una animación de latido espectral continuo (`ScaleTransition`). Con esta letra y las del resto de salas (1-5), los grupos podrán abrir la puerta final en la Sala 6.
 
 ---
