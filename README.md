@@ -100,5 +100,5 @@ En una aplicación de software real:
 * **Tipografía:**
   * `terror.ttf` cargada con `Font.loadFont`.
 * **Sonido:**
-  * Pista ambiental (`ambiente.mp3` / `ambiente.wav`) reproducida en bucle mediante `javafx.scene.media.MediaPlayer`.
-  * Efecto de impacto sonoro (`susto.mp3` / `susto.wav`) reproducido mediante `javafx.scene.media.AudioClip`.
+  * Pista ambiental integrada (`ambiente.mp3`) reproducida en bucle continuo mediante `javafx.scene.media.MediaPlayer`.
+  * Efecto de impacto sonoro integrado (`susto.mp3`) reproducido mediante `javafx.scene.media.AudioClip`.
