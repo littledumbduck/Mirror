@@ -97,9 +97,7 @@ En una aplicación de software real:
 
 * **Imágenes:**
   * Marco de espejo gótico barroco a pantalla casi completa (`espejo.png`).
-  * Rostro espectral reflejado con cuencas oculares vacías (`rostro_espejo.png`).
-  * Globos oculares demoníacos interactivos independientes (`ojo_terror.png`).
-  * Rostro jumpscare para el scream súbito a pantalla completa (`reflejo_espectro.png`).
+  * Rostro jumpscare adaptado a pantalla completa para el scream súbito (`jumpscare.jpeg` / `jumpscare.jpg`).
 * **Tipografía:**
   * `terror.ttf` cargada con `Font.loadFont`.
 * **Sonido:**
