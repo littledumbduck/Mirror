@@ -231,8 +231,10 @@ public class SalaController {
         aparicionEspectro.setToValue(1.0);
 
         ScaleTransition zoomEspectro = new ScaleTransition(Duration.millis(450), imgEspectro);
-        zoomEspectro.setFromValue(0.7);
-        zoomEspectro.setToValue(1.15);
+        zoomEspectro.setFromX(0.7);
+        zoomEspectro.setFromY(0.7);
+        zoomEspectro.setToX(1.15);
+        zoomEspectro.setToY(1.15);
 
         ParallelTransition sustoAnimacion = new ParallelTransition(aparicionEspectro, zoomEspectro);
 
@@ -263,8 +265,10 @@ public class SalaController {
         fadeLetra.setToValue(1.0);
 
         ScaleTransition scaleLetra = new ScaleTransition(Duration.millis(700), lblLetraD);
-        scaleLetra.setFromValue(0.4);
-        scaleLetra.setToValue(1.0);
+        scaleLetra.setFromX(0.4);
+        scaleLetra.setFromY(0.4);
+        scaleLetra.setToX(1.0);
+        scaleLetra.setToY(1.0);
 
         FadeTransition fadeSubLetra = new FadeTransition(Duration.millis(800), lblSubLetra);
         fadeSubLetra.setFromValue(0.0);
@@ -274,8 +278,10 @@ public class SalaController {
         transicionRevelacion.setOnFinished(ev -> {
             // Efecto de pulso/latido espectral en la letra D
             animacionLatidoLetra = new ScaleTransition(Duration.seconds(1.2), lblLetraD);
-            animacionLatidoLetra.setFromValue(1.0);
-            animacionLatidoLetra.setToValue(1.08);
+            animacionLatidoLetra.setFromX(1.0);
+            animacionLatidoLetra.setFromY(1.0);
+            animacionLatidoLetra.setToX(1.08);
+            animacionLatidoLetra.setToY(1.08);
             animacionLatidoLetra.setAutoReverse(true);
             animacionLatidoLetra.setCycleCount(Timeline.INDEFINITE);
             animacionLatidoLetra.play();
