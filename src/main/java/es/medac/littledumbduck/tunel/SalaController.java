@@ -98,8 +98,8 @@ public class SalaController {
     private static final double RADIO_TOLERANCIA_RATON = 85.0;
     // Tolerancia de fallo: 1.8 segundos fuera del punto antes de perder
     private static final double MAX_TIEMPO_FUERA = 1.8;
-    // Tiempo requerido siguiendo el punto antes del susto (30 segundos)
-    private static final double SEGUNDOS_OBJETIVO = 30.0;
+    // Tiempo requerido siguiendo el punto antes del susto (20 segundos)
+    private static final double SEGUNDOS_OBJETIVO = 20.0;
     // Duración del scream solicitada (5 segundos)
     private static final int SEGUNDOS_SCREAM = 5;
     // Tiempo de piedad según rúbrica (60 segundos)
