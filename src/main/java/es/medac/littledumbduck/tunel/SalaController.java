@@ -2,6 +2,8 @@ package es.medac.littledumbduck.tunel;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Random;
+import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
@@ -10,26 +12,25 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 /**
  * Controlador para la Sala 4: El Espejo (Túnel del Terror).
- * - Espejo a gran escala ocupando casi toda la pantalla.
- * - Rostro reflejado con ojos (imágenes individuales) que siguen el cursor del ratón en tiempo real.
- * - Susto repentino e instantáneo (pantalla completa sin transición) con sonido inmediato durante 5 segundos.
- * - Entrega posterior de la letra secreta "D" con animación de latido.
- * - Temporizador de piedad (60s) y autorreinicio (o mediante tecla F12).
+ * - Pantalla de concentración: "Mira atentamente al punto y síguelo con el ratón".
+ * - Botón para iniciar la prueba.
+ * - Punto móvil aleatorio (con variaciones continuas de velocidad y distancia por toda la pantalla).
+ * - Comprobación continua: si el ratón se sale del punto, se detiene y muestra "Vuelve a intentarlo".
+ * - Tras 30 segundos continuos siguiendo el punto, se dispara el scream súbito con audio instantáneo.
+ * - Tras 5 segundos de scream, se revela la letra secreta "D" con animación de latido espectral.
+ * - Autorreinicio tras 12 segundos y tecla F12 para reinicio manual inmediato.
  */
 public class SalaController {
 
@@ -43,18 +44,15 @@ public class SalaController {
     @FXML private StackPane capaEspejo;
     @FXML private StackPane contenedorEspejo;
     @FXML private ImageView imgEspejo;
-    @FXML private StackPane contenedorRostro;
-    @FXML private ImageView imgRostroEspejo;
-    @FXML private Pane panelOjos;
-    @FXML private ImageView imgOjoIzquierdo;
-    @FXML private ImageView imgOjoDerecho;
     @FXML private StackPane capaNiebla;
     @FXML private Label lblTitulo;
     @FXML private Label lblInstruccion;
-    @FXML private HBox cajaInteraccion;
-    @FXML private TextField txtEntrada;
-    @FXML private Button btnInteractuar;
+    @FXML private Button btnIniciar;
     @FXML private Label lblMensajeEstado;
+
+    // Elementos del punto móvil
+    @FXML private Pane panelPunto;
+    @FXML private StackPane nodoPunto;
 
     // Capa 2: Jumpscare repentino
     @FXML private StackPane capaJumpscare;
@@ -78,11 +76,27 @@ public class SalaController {
     private AudioClip audioClipSusto;
 
     private boolean resuelto = false;
+    private boolean juegoEnCurso = false;
 
-    // Radio máximo de desplazamiento del globo ocular dentro de la cuenca
-    private static final double RADIO_MAX_OJO = 8.0;
-    // Sensibilidad del seguimiento de la mirada
-    private static final double FACTOR_DISTANCIA = 0.025;
+    // Posición del ratón en la escena
+    private double mouseX = -1000;
+    private double mouseY = -1000;
+
+    // Lógica del punto móvil
+    private AnimationTimer buclePunto;
+    private double puntoX = 0;
+    private double puntoY = 0;
+    private double objetivoX = 0;
+    private double objetivoY = 0;
+    private double velocidadActual = 180.0; // px por segundo
+    private double segundosSeguidos = 0.0;
+    private long ultimoTiempoNano = 0;
+    private final Random azar = new Random();
+
+    // Tolerancia del ratón sobre el punto (radio en px)
+    private static final double RADIO_TOLERANCIA_RATON = 48.0;
+    // Tiempo requerido siguiendo el punto antes del susto (30 segundos)
+    private static final double SEGUNDOS_OBJETIVO = 30.0;
     // Duración del scream solicitada (5 segundos)
     private static final int SEGUNDOS_SCREAM = 5;
     // Tiempo de piedad según rúbrica (60 segundos)
@@ -95,8 +109,8 @@ public class SalaController {
         cargarFuentePersonalizada();
         cargarImagenes();
         ajustarTamanosPantalla();
-        configurarSeguimientoOjos();
-        configurarInteraccionBase();
+        configurarDeteccionRaton();
+        configurarBucleMovimientoPunto();
         inicializarAudio();
         iniciarTemporizadorPiedad();
     }
@@ -120,31 +134,13 @@ public class SalaController {
     }
 
     /**
-     * Carga de imágenes: espejo, rostro de reflejo, ojos individuales e imagen del susto.
+     * Carga de imágenes: marco del espejo y rostro para el jumpscare.
      */
     private void cargarImagenes() {
         try {
             InputStream espejoStream = getClass().getResourceAsStream("images/espejo.png");
             if (espejoStream != null) {
                 imgEspejo.setImage(new Image(espejoStream));
-            }
-
-            InputStream rostroStream = getClass().getResourceAsStream("images/rostro_espejo.png");
-            if (rostroStream != null) {
-                imgRostroEspejo.setImage(new Image(rostroStream));
-            }
-
-            // Carga de la imagen de los ojos que siguen el cursor
-            InputStream ojoStream = getClass().getResourceAsStream("images/ojo_terror.png");
-            if (ojoStream != null) {
-                Image ojoImg = new Image(ojoStream);
-                imgOjoIzquierdo.setImage(ojoImg);
-                imgOjoDerecho.setImage(ojoImg);
-
-                // Recorte circular perfecto para los globos oculares
-                double radio = 19.0;
-                imgOjoIzquierdo.setClip(new Circle(radio, radio, radio));
-                imgOjoDerecho.setClip(new Circle(radio, radio, radio));
             }
 
             InputStream jumpscareStream = getClass().getResourceAsStream("images/reflejo_espectro.png");
@@ -157,56 +153,158 @@ public class SalaController {
     }
 
     /**
-     * Hace que el espejo ocupe casi toda la pantalla y el jumpscare la pantalla completa.
+     * Ajuste de proporciones para ocupar casi toda la pantalla.
      */
     private void ajustarTamanosPantalla() {
-        // El espejo ocupa prácticamente toda la ventana
         imgEspejo.fitWidthProperty().bind(raiz.widthProperty().multiply(0.95));
         imgEspejo.fitHeightProperty().bind(raiz.heightProperty().multiply(0.92));
 
-        // La imagen del jumpscare se estira a pantalla completa total
         imgJumpscare.fitWidthProperty().bind(raiz.widthProperty());
         imgJumpscare.fitHeightProperty().bind(raiz.heightProperty());
     }
 
     /**
-     * Lógica interactiva de seguimiento ocular con imágenes:
-     * Calcula el ángulo entre cada ojo y la posición del cursor del ratón en la ventana,
-     * orientando las imágenes de los ojos en tiempo real hacia donde mira el visitante.
+     * Rastreo continuo de la posición del ratón.
      */
-    private void configurarSeguimientoOjos() {
+    private void configurarDeteccionRaton() {
         raiz.setOnMouseMoved(event -> {
-            if (resuelto) {
-                return;
-            }
-            double mouseX = event.getSceneX();
-            double mouseY = event.getSceneY();
-
-            actualizarOjo(imgOjoIzquierdo, mouseX, mouseY);
-            actualizarOjo(imgOjoDerecho, mouseX, mouseY);
+            mouseX = event.getSceneX();
+            mouseY = event.getSceneY();
+        });
+        raiz.setOnMouseDragged(event -> {
+            mouseX = event.getSceneX();
+            mouseY = event.getSceneY();
         });
     }
 
-    private void actualizarOjo(ImageView imgOjo, double mouseX, double mouseY) {
-        try {
-            double mitadAncho = imgOjo.getFitWidth() / 2.0;
-            double mitadAlto = imgOjo.getFitHeight() / 2.0;
-            Point2D centroOjoEscena = imgOjo.localToScene(mitadAncho, mitadAlto);
+    /**
+     * Bucle continuo a 60 FPS con AnimationTimer para mover el punto aleatoriamente
+     * y verificar que el usuario mantiene el ratón encima.
+     */
+    private void configurarBucleMovimientoPunto() {
+        buclePunto = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                if (!juegoEnCurso || resuelto) {
+                    return;
+                }
 
-            double dx = mouseX - centroOjoEscena.getX();
-            double dy = mouseY - centroOjoEscena.getY();
-            double angulo = Math.atan2(dy, dx);
-            double distancia = Math.min(RADIO_MAX_OJO, Math.hypot(dx, dy) * FACTOR_DISTANCIA);
+                if (ultimoTiempoNano == 0) {
+                    ultimoTiempoNano = now;
+                    return;
+                }
 
-            imgOjo.setTranslateX(Math.cos(angulo) * distancia);
-            imgOjo.setTranslateY(Math.sin(angulo) * distancia);
-        } catch (Exception ignored) {
-            // Protección ante inicialización de escena
-        }
+                double dt = (now - ultimoTiempoNano) / 1_000_000_000.0;
+                ultimoTiempoNano = now;
+
+                // 1. Comprobar si el ratón está encima del punto
+                Point2D puntoEscena = nodoPunto.localToScene(nodoPunto.getWidth() / 2.0, nodoPunto.getHeight() / 2.0);
+                double distMouse = Math.hypot(mouseX - puntoEscena.getX(), mouseY - puntoEscena.getY());
+
+                if (distMouse > RADIO_TOLERANCIA_RATON) {
+                    // El usuario se ha salido del punto -> Detener y mostrar "Vuelve a intentarlo"
+                    pausarPorSalidaDelPunto();
+                    return;
+                }
+
+                // 2. Si el ratón sigue encima, sumar tiempo de concentración
+                segundosSeguidos += dt;
+
+                // 3. Si llega a los 30 segundos continuos, ¡DISPARAR EL SUSTO!
+                if (segundosSeguidos >= SEGUNDOS_OBJETIVO) {
+                    buclePunto.stop();
+                    ejecutarSustoRepentino();
+                    return;
+                }
+
+                // 4. Mover el punto hacia su objetivo aleatorio
+                double dx = objetivoX - puntoX;
+                double dy = objetivoY - puntoY;
+                double distObjetivo = Math.hypot(dx, dy);
+
+                if (distObjetivo < 20.0) {
+                    // Llegó al objetivo -> Elegir nuevo rumbo, distancia y velocidad aleatoria
+                    elegirNuevoObjetivoYVelocidad();
+                } else {
+                    double paso = velocidadActual * dt;
+                    puntoX += (dx / distObjetivo) * paso;
+                    puntoY += (dy / distObjetivo) * paso;
+
+                    nodoPunto.setLayoutX(puntoX);
+                    nodoPunto.setLayoutY(puntoY);
+                }
+            }
+        };
     }
 
     /**
-     * Configuración del audio de ambiente continuo en bucle y del sonido de susto.
+     * Elige una nueva coordenada y velocidad aleatoria por toda la pantalla.
+     */
+    private void elegirNuevoObjetivoYVelocidad() {
+        double ancho = Math.max(800, raiz.getWidth());
+        double alto = Math.max(600, raiz.getHeight());
+
+        // Margen para mantenerse dentro de la zona visible del espejo
+        double minX = ancho * 0.18;
+        double maxX = ancho * 0.82;
+        double minY = alto * 0.16;
+        double maxY = alto * 0.80;
+
+        // Intervalos de distancia: a veces cerca, a veces lejos
+        objetivoX = minX + azar.nextDouble() * (maxX - minX);
+        objetivoY = minY + azar.nextDouble() * (maxY - minY);
+
+        // Intervalos de velocidad: más rápido o más lento (entre 120 px/s y 320 px/s)
+        velocidadActual = 130.0 + azar.nextDouble() * 190.0;
+    }
+
+    /**
+     * Inicia la concentración al pulsar el botón.
+     */
+    @FXML
+    public void onIniciarPunto() {
+        if (resuelto) {
+            return;
+        }
+
+        btnIniciar.setVisible(false);
+        lblMensajeEstado.setText("");
+        lblInstruccion.setText("Mira atentamente al punto y síguelo con el ratón...");
+
+        // Posicionar el punto en el centro del espejo
+        double ancho = Math.max(800, raiz.getWidth());
+        double alto = Math.max(600, raiz.getHeight());
+        puntoX = ancho / 2.0 - 18.0;
+        puntoY = alto / 2.0 - 18.0;
+
+        nodoPunto.setLayoutX(puntoX);
+        nodoPunto.setLayoutY(puntoY);
+        nodoPunto.setVisible(true);
+
+        segundosSeguidos = 0.0;
+        ultimoTiempoNano = 0;
+        elegirNuevoObjetivoYVelocidad();
+
+        juegoEnCurso = true;
+        buclePunto.start();
+    }
+
+    /**
+     * Se llama cuando el usuario pierde el punto.
+     */
+    private void pausarPorSalidaDelPunto() {
+        juegoEnCurso = false;
+        buclePunto.stop();
+        nodoPunto.setVisible(false);
+
+        lblMensajeEstado.setText("Vuelve a intentarlo...");
+        lblInstruccion.setText("Has apartado la mirada o el ratón. Concéntrate de nuevo.");
+        btnIniciar.setText("VOLVER A INTENTAR");
+        btnIniciar.setVisible(true);
+    }
+
+    /**
+     * Configuración del audio ambiental en bucle y efecto de scream.
      */
     private void inicializarAudio() {
         try {
@@ -233,7 +331,7 @@ public class SalaController {
             if (sustoUrl != null) {
                 audioClipSusto = new AudioClip(sustoUrl.toExternalForm());
                 audioClipSusto.setVolume(1.0);
-                // Precalentar el buffer de sonido a volumen 0 para eliminar latencia
+                // Precalentar el buffer de sonido para eliminar cualquier latencia
                 audioClipSusto.play(0.0);
             }
         } catch (Exception e) {
@@ -242,18 +340,8 @@ public class SalaController {
     }
 
     /**
-     * Configuración base de eventos.
-     */
-    private void configurarInteraccionBase() {
-        // Tocar el cristal del espejo directamente desencadena el susto de repente
-        contenedorEspejo.setOnMouseClicked(event -> onInteractuar());
-
-        // Pulsar Enter en el campo de texto desencadena el susto
-        txtEntrada.setOnAction(event -> onInteractuar());
-    }
-
-    /**
-     * Temporizador de piedad (60s) según rúbrica.
+     * Temporizador de piedad (60s) según rúbrica:
+     * Si transcurren 60 segundos sin resolver, la sala entrega la letra.
      */
     private void iniciarTemporizadorPiedad() {
         detenerTemporizadores();
@@ -266,22 +354,18 @@ public class SalaController {
         temporizadorPiedad.play();
     }
 
-    @FXML
-    public void onInteractuar() {
-        if (resuelto) {
-            return;
-        }
-        ejecutarSustoRepentino();
-    }
-
     /**
      * Susto repentino e instantáneo:
-     * - Disparo de audio en el milisegundo 0 (adelantado y sin latencia).
-     * - CAMBIO DE PANTALLA DE GOLPE SIN TRANSICIÓN a pantalla completa.
-     * - Se mantiene durante ~5 segundos antes de mostrar la letra 'D'.
+     * - Disparo de audio en el milisegundo 0.
+     * - Cambio súbito a pantalla completa de scream (sin transición).
+     * - Se sostiene durante 5 segundos antes de mostrar la letra secreta 'D'.
      */
     public void ejecutarSustoRepentino() {
         resuelto = true;
+        juegoEnCurso = false;
+        if (buclePunto != null) {
+            buclePunto.stop();
+        }
         detenerTemporizadores();
 
         // 1. DISPARAR AUDIO INMEDIATAMENTE EN EL MILISEGUNDO 0
@@ -329,7 +413,11 @@ public class SalaController {
     public void reiniciarSala() {
         detenerTemporizadores();
         resuelto = false;
+        juegoEnCurso = false;
 
+        if (buclePunto != null) {
+            buclePunto.stop();
+        }
         if (animacionLatidoLetra != null) {
             animacionLatidoLetra.stop();
         }
@@ -339,14 +427,15 @@ public class SalaController {
         capaLetra.setVisible(false);
         capaEspejo.setVisible(true);
 
-        // Resetear ojos
-        imgOjoIzquierdo.setTranslateX(0);
-        imgOjoIzquierdo.setTranslateY(0);
-        imgOjoDerecho.setTranslateX(0);
-        imgOjoDerecho.setTranslateY(0);
-
-        txtEntrada.clear();
+        // Restaurar estado inicial del botón y punto
+        nodoPunto.setVisible(false);
         lblMensajeEstado.setText("");
+        lblInstruccion.setText("Mira atentamente al punto y síguelo con el ratón...");
+        btnIniciar.setText("COMENZAR CONCENTRACIÓN");
+        btnIniciar.setVisible(true);
+
+        segundosSeguidos = 0.0;
+        ultimoTiempoNano = 0;
 
         // Reiniciar temporizador de piedad
         iniciarTemporizadorPiedad();

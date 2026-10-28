@@ -2,12 +2,11 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
 <StackPane fx:id="raiz" prefHeight="900.0" prefWidth="1400.0" 
            styleClass="fondo-principal" stylesheets="@estilos.css" 
@@ -21,33 +20,26 @@
             <!-- Imagen del marco del espejo gótico -->
             <ImageView fx:id="imgEspejo" pickOnBounds="true" preserveRatio="true" styleClass="imagen-espejo" />
 
-            <!-- Rostro reflejado dentro del espejo con ojos (imágenes) que siguen el cursor -->
-            <StackPane fx:id="contenedorRostro" alignment="CENTER" maxWidth="520.0" maxHeight="520.0">
-                <ImageView fx:id="imgRostroEspejo" fitHeight="520.0" fitWidth="520.0" opacity="0.88" pickOnBounds="true" preserveRatio="true" />
-                
-                <!-- Panel de ojos interactivos superpuestos en las cuencas oculares -->
-                <Pane fx:id="panelOjos" prefHeight="520.0" prefWidth="520.0">
-                    <!-- Ojo izquierdo: imagen que sigue al ratón dentro de la cuenca (X~192, Y~215) -->
-                    <ImageView fx:id="imgOjoIzquierdo" fitHeight="38.0" fitWidth="38.0" layoutX="192.0" layoutY="215.0" pickOnBounds="true" preserveRatio="true" styleClass="imagen-ojo" />
-                    <!-- Ojo derecho: imagen que sigue al ratón dentro de la cuenca (X~281, Y~212) -->
-                    <ImageView fx:id="imgOjoDerecho" fitHeight="38.0" fitWidth="38.0" layoutX="281.0" layoutY="212.0" pickOnBounds="true" preserveRatio="true" styleClass="imagen-ojo" />
-                </Pane>
-            </StackPane>
-
             <!-- Capa de niebla y resplandor sobre el cristal -->
             <StackPane fx:id="capaNiebla" mouseTransparent="true" styleClass="capa-niebla" />
 
-            <!-- Barra inferior con llamada a la acción y campo interactivo -->
-            <VBox alignment="BOTTOM_CENTER" spacing="10.0" styleClass="caja-inferior" mouseTransparent="false">
+            <!-- Textos y botón de inicio antes de comenzar la concentración -->
+            <VBox alignment="CENTER" spacing="20.0" mouseTransparent="false">
                 <Label fx:id="lblTitulo" styleClass="texto-maldito-titulo" text="M Í R A T E . . ." />
-                <Label fx:id="lblInstruccion" styleClass="texto-instruccion" text="Sus ojos te observan... Toca el cristal o introduce lo que viste en el retrato." />
+                <Label fx:id="lblInstruccion" styleClass="texto-instruccion" text="Mira atentamente al punto y síguelo con el ratón..." />
                 
-                <HBox fx:id="cajaInteraccion" alignment="CENTER" spacing="15.0" styleClass="caja-interaccion">
-                    <TextField fx:id="txtEntrada" promptText="Introduce lo que viste en sus ojos..." styleClass="campo-terror" prefWidth="380.0" />
-                    <Button fx:id="btnInteractuar" mnemonicParsing="false" onAction="#onInteractuar" styleClass="boton-terror" text="TOCAR EL CRISTAL" />
-                </HBox>
+                <Button fx:id="btnIniciar" mnemonicParsing="false" onAction="#onIniciarPunto" styleClass="boton-terror" text="COMENZAR CONCENTRACIÓN" />
                 <Label fx:id="lblMensajeEstado" styleClass="texto-estado" text="" />
             </VBox>
+
+            <!-- Panel absoluto donde el punto se mueve libremente por la pantalla -->
+            <Pane fx:id="panelPunto" mouseTransparent="false" pickOnBounds="false">
+                <!-- Punto rojo espectral que el visitante debe seguir con el ratón -->
+                <StackPane fx:id="nodoPunto" visible="false" styleClass="nodo-punto">
+                    <Circle radius="18.0" styleClass="punto-anillo-exterior" />
+                    <Circle radius="7.0" styleClass="punto-nucleo" />
+                </StackPane>
+            </Pane>
         </StackPane>
     </StackPane>
 
