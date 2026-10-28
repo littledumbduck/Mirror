@@ -25,11 +25,17 @@ public class App extends Application {
 
         Scene scene = new Scene(root);
 
-        // Tecla F12 para reinicio manual inmediato entre grupos de visitantes
+        // Teclas de control rápido:
+        // - F12: reinicio manual inmediato entre grupos de visitantes
+        // - F9: salto directo al jumpscare para betatesting rápido
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F12) {
                 if (controller != null) {
                     controller.reiniciarSala();
+                }
+            } else if (event.getCode() == KeyCode.F9) {
+                if (controller != null) {
+                    controller.ejecutarSustoRepentino();
                 }
             }
         });

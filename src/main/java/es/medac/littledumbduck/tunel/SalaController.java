@@ -14,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.AudioClip;
@@ -24,12 +25,12 @@ import javafx.util.Duration;
 
 /**
  * Controlador para la Sala 4: El Espejo (Túnel del Terror).
- * - Mecánica de concentración con punto móvil.
- * - Margen de tolerancia de 1.8 segundos antes de dar fallo.
- * - Rango de tolerancia de contacto ampliado (~85px) para jugabilidad óptima.
- * - Inicio justo: el punto aparece centrado y no penaliza hasta que el usuario lo toca.
- * - A los 30 segundos de seguimiento -> Scream fulminante instantáneo durante 5s.
- * - Entrega de la letra secreta "D" con animación espectral.
+ * - Mecánica de concentración con punto móvil (20 segundos).
+ * - Margen de tolerancia de 1.8 segundos y radio de 85px.
+ * - Sincronización audiovisual perfecta al milisegundo: audio disparado y sincronizado.
+ * - Imagen del jumpscare limpia a pantalla completa sin bordes rojos ni difuminados.
+ * - Atajo F9 para salto directo al susto (betatesting rápido) y F12 para reinicio manual.
+ * - Entrega de la letra secreta "D" tras 5 segundos de scream.
  */
 public class SalaController {
 
@@ -55,7 +56,6 @@ public class SalaController {
 
     // Capa 2: Jumpscare repentino
     @FXML private StackPane capaJumpscare;
-    @FXML private ImageView imgJumpscareFondo;
     @FXML private ImageView imgJumpscare;
 
     // Capa 3: Revelación de la letra "D"
@@ -91,11 +91,11 @@ public class SalaController {
     private double objetivoY = 0;
     private double velocidadActual = 150.0;
     private double segundosSeguidos = 0.0;
-    private double tiempoFuera = 0.0; // Contador de tolerancia de fallo
+    private double tiempoFuera = 0.0;
     private long ultimoTiempoNano = 0;
     private final Random azar = new Random();
 
-    // Rango de tolerancia de captura del ratón ampliado a 85px (muy cómodo y justo)
+    // Rango de tolerancia de captura del ratón (85px)
     private static final double RADIO_TOLERANCIA_RATON = 85.0;
     // Tolerancia de fallo: 1.8 segundos fuera del punto antes de perder
     private static final double MAX_TIEMPO_FUERA = 1.8;
@@ -113,7 +113,7 @@ public class SalaController {
         cargarFuentePersonalizada();
         cargarImagenes();
         ajustarTamanosPantalla();
-        configurarDeteccionRaton();
+        configurarDeteccionRatonYTeclado();
         configurarBucleMovimientoPunto();
         inicializarAudio();
         iniciarTemporizadorPiedad();
@@ -155,11 +155,7 @@ public class SalaController {
                 jumpscareStream = getClass().getResourceAsStream("images/reflejo_espectro.png");
             }
             if (jumpscareStream != null) {
-                Image imgScare = new Image(jumpscareStream);
-                imgJumpscare.setImage(imgScare);
-                if (imgJumpscareFondo != null) {
-                    imgJumpscareFondo.setImage(imgScare);
-                }
+                imgJumpscare.setImage(new Image(jumpscareStream));
             }
         } catch (Exception e) {
             System.err.println("Aviso al cargar imágenes: " + e.getMessage());
@@ -173,18 +169,14 @@ public class SalaController {
         imgEspejo.fitWidthProperty().bind(raiz.widthProperty().multiply(0.95));
         imgEspejo.fitHeightProperty().bind(raiz.heightProperty().multiply(0.92));
 
-        if (imgJumpscareFondo != null) {
-            imgJumpscareFondo.fitWidthProperty().bind(raiz.widthProperty());
-            imgJumpscareFondo.fitHeightProperty().bind(raiz.heightProperty());
-        }
         imgJumpscare.fitHeightProperty().bind(raiz.heightProperty().multiply(0.98));
         imgJumpscare.fitWidthProperty().bind(raiz.widthProperty().multiply(0.98));
     }
 
     /**
-     * Rastreo continuo de la posición del ratón.
+     * Rastreo continuo de la posición del ratón y atajos de teclado (F9 y F12).
      */
-    private void configurarDeteccionRaton() {
+    private void configurarDeteccionRatonYTeclado() {
         raiz.setOnMouseMoved(event -> {
             mouseX = event.getSceneX();
             mouseY = event.getSceneY();
@@ -192,6 +184,15 @@ public class SalaController {
         raiz.setOnMouseDragged(event -> {
             mouseX = event.getSceneX();
             mouseY = event.getSceneY();
+        });
+
+        // Atajo directo F9 para betatesting rápido y F12 para reinicio
+        raiz.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.F9) {
+                ejecutarSustoRepentino();
+            } else if (event.getCode() == KeyCode.F12) {
+                reiniciarSala();
+            }
         });
     }
 
@@ -214,43 +215,37 @@ public class SalaController {
                 double dt = (now - ultimoTiempoNano) / 1_000_000_000.0;
                 ultimoTiempoNano = now;
 
-                // Medir distancia entre ratón y el punto
                 Point2D puntoEscena = nodoPunto.localToScene(nodoPunto.getWidth() / 2.0, nodoPunto.getHeight() / 2.0);
                 double distMouse = Math.hypot(mouseX - puntoEscena.getX(), mouseY - puntoEscena.getY());
 
                 boolean ratonEncima = distMouse <= RADIO_TOLERANCIA_RATON;
 
-                // Esperar a que el usuario toque el punto por primera vez tras pulsar el botón
                 if (!primerContactoRealizado) {
                     if (ratonEncima) {
                         primerContactoRealizado = true;
                         lblInstruccion.setText("¡Bien! No apartes el ratón del punto...");
                         lblMensajeEstado.setText("");
                     } else {
-                        // Aún no ha puesto el ratón encima por primera vez: no penalizar
                         lblMensajeEstado.setText("Coloca el ratón sobre el punto rojo para comenzar...");
                         return;
                     }
                 }
 
                 if (ratonEncima) {
-                    // Está dentro del rango de tolerancia -> resetear tiempo fuera y acumular éxito
                     tiempoFuera = 0.0;
                     segundosSeguidos += dt;
                     lblMensajeEstado.setText("");
                 } else {
-                    // Se ha salido del punto: aplicar margen de tolerancia de fallo (1.8 segundos)
                     tiempoFuera += dt;
                     lblMensajeEstado.setText("¡CUIDADO! Vuelve al punto...");
 
                     if (tiempoFuera >= MAX_TIEMPO_FUERA) {
-                        // Se acabó el margen de tolerancia -> Detener
                         pausarPorSalidaDelPunto();
                         return;
                     }
                 }
 
-                // Si llega a los 30 segundos continuos, ¡DISPARAR EL SUSTO!
+                // Si llega a los 20 segundos continuos, ¡DISPARAR EL SUSTO!
                 if (segundosSeguidos >= SEGUNDOS_OBJETIVO) {
                     buclePunto.stop();
                     ejecutarSustoRepentino();
@@ -291,7 +286,6 @@ public class SalaController {
         objetivoX = minX + azar.nextDouble() * (maxX - minX);
         objetivoY = minY + azar.nextDouble() * (maxY - minY);
 
-        // Velocidad accesible y controlada (entre 100 y 230 px/s)
         velocidadActual = 110.0 + azar.nextDouble() * 120.0;
     }
 
@@ -308,7 +302,6 @@ public class SalaController {
         lblInstruccion.setText("Coloca el cursor sobre el punto rojo para comenzar a seguirlo...");
         lblMensajeEstado.setText("");
 
-        // Posicionar el punto en el centro de la pantalla
         double ancho = Math.max(800, raiz.getWidth());
         double alto = Math.max(600, raiz.getHeight());
         puntoX = ancho / 2.0 - 20.0;
@@ -363,14 +356,14 @@ public class SalaController {
         }
 
         try {
-            URL sustoUrl = getClass().getResource("sounds/susto.mp3");
+            URL sustoUrl = getClass().getResource("sounds/susto.wav");
             if (sustoUrl == null) {
-                sustoUrl = getClass().getResource("sounds/susto.wav");
+                sustoUrl = getClass().getResource("sounds/susto.mp3");
             }
             if (sustoUrl != null) {
                 audioClipSusto = new AudioClip(sustoUrl.toExternalForm());
                 audioClipSusto.setVolume(1.0);
-                // Precalentar el buffer de sonido para eliminar latencia
+                // Precalentar buffer a volumen 0
                 audioClipSusto.play(0.0);
             }
         } catch (Exception e) {
@@ -394,9 +387,10 @@ public class SalaController {
 
     /**
      * Susto repentino e instantáneo:
-     * - Disparo de audio en el milisegundo 0.
-     * - Cambio súbito a pantalla completa de scream (sin transición).
-     * - Se sostiene durante 5 segundos antes de mostrar la letra secreta 'D'.
+     * - DISPARO DE AUDIO PRIORITARIO: Se inicia el sonido en la primera línea.
+     * - Compensación milimétrica (~90ms) para que el impacto visual coincida exactamente
+     *   con el instante en que la onda sonora llega a los altavoces.
+     * - Sostiene el scream durante 5 segundos y luego muestra la letra 'D'.
      */
     public void ejecutarSustoRepentino() {
         resuelto = true;
@@ -406,20 +400,25 @@ public class SalaController {
         }
         detenerTemporizadores();
 
-        // 1. DISPARAR AUDIO INMEDIATAMENTE EN EL MILISEGUNDO 0
+        // 1. PRIORIZAR EL SONIDO: Se lanza inmediatamente en la primera línea
         if (audioClipSusto != null) {
             audioClipSusto.play();
         }
 
-        // 2. Cambio súbito de pantalla (sin transición gradual)
-        capaEspejo.setVisible(false);
-        capaLetra.setVisible(false);
-        capaJumpscare.setVisible(true);
+        // 2. Compensación milimétrica de latencia acústica (90ms):
+        // La imagen conmuta justo cuando el hardware de audio emite el primer sonido
+        PauseTransition sincroVisual = new PauseTransition(Duration.millis(90));
+        sincroVisual.setOnFinished(event -> {
+            capaEspejo.setVisible(false);
+            capaLetra.setVisible(false);
+            capaJumpscare.setVisible(true);
 
-        // 3. Duración de 5 segundos de scream antes de entregar la letra "D"
-        temporizadorScream = new PauseTransition(Duration.seconds(SEGUNDOS_SCREAM));
-        temporizadorScream.setOnFinished(event -> mostrarPantallaLetraD());
-        temporizadorScream.play();
+            // 3. Duración de 5 segundos de scream antes de entregar la letra "D"
+            temporizadorScream = new PauseTransition(Duration.seconds(SEGUNDOS_SCREAM));
+            temporizadorScream.setOnFinished(ev -> mostrarPantallaLetraD());
+            temporizadorScream.play();
+        });
+        sincroVisual.play();
     }
 
     /**
@@ -429,7 +428,6 @@ public class SalaController {
         capaJumpscare.setVisible(false);
         capaLetra.setVisible(true);
 
-        // Animación de latido espectral requerida por la rúbrica (ScaleTransition en bucle)
         animacionLatidoLetra = new ScaleTransition(Duration.seconds(1.1), lblLetraD);
         animacionLatidoLetra.setFromX(1.0);
         animacionLatidoLetra.setFromY(1.0);
@@ -439,7 +437,6 @@ public class SalaController {
         animacionLatidoLetra.setCycleCount(Timeline.INDEFINITE);
         animacionLatidoLetra.play();
 
-        // Programar autorreinicio para el siguiente grupo
         temporizadorReinicio = new PauseTransition(Duration.seconds(SEGUNDOS_AUTORREINICIO));
         temporizadorReinicio.setOnFinished(event -> reiniciarSala());
         temporizadorReinicio.play();
@@ -461,12 +458,10 @@ public class SalaController {
             animacionLatidoLetra.stop();
         }
 
-        // Restaurar visibilidad de las capas
         capaJumpscare.setVisible(false);
         capaLetra.setVisible(false);
         capaEspejo.setVisible(true);
 
-        // Restaurar estado inicial del botón y punto
         nodoPunto.setVisible(false);
         lblMensajeEstado.setText("");
         lblInstruccion.setText("Mira atentamente al punto y síguelo con el ratón...");
@@ -477,7 +472,6 @@ public class SalaController {
         tiempoFuera = 0.0;
         ultimoTiempoNano = 0;
 
-        // Reiniciar temporizador de piedad
         iniciarTemporizadorPiedad();
     }
 

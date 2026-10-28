@@ -43,11 +43,9 @@
         </StackPane>
     </StackPane>
 
-    <!-- CAPA 2: JUMPSCARE INMEDIATO (ADAPTADO PERFECTAMENTE A PANTALLA COMPLETA, 5s) -->
+    <!-- CAPA 2: JUMPSCARE INMEDIATO (FONDO NEGRO PURO SIN BORDES ROJOS DIFUMINADOS, 5s) -->
     <StackPane fx:id="capaJumpscare" visible="false" styleClass="capa-jumpscare">
-        <!-- Fondo ambiental a pantalla completa total -->
-        <ImageView fx:id="imgJumpscareFondo" opacity="0.45" pickOnBounds="true" preserveRatio="false" styleClass="imagen-jumpscare-fondo" />
-        <!-- Imagen principal del jumpscare centrada a máxima resolución -->
+        <!-- Imagen del jumpscare limpia y nítida centrada a pantalla completa -->
         <ImageView fx:id="imgJumpscare" pickOnBounds="true" preserveRatio="true" styleClass="imagen-jumpscare" />
     </StackPane>
 
